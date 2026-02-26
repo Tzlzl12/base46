@@ -10,22 +10,22 @@ local function tbval_index(tb, val)
 end
 
 local integrations = {
-  "blankline",
-  "blink",
-  "cmp",
+  -- "blankline",
+  -- "blink",
+  -- "cmp",
   "defaults",
-  "devicons",
-  "git",
-  "lsp",
-  "mason",
-  "nvcheatsheet",
-  "nvimtree",
-  "statusline",
-  "syntax",
-  "treesitter",
-  "tbline",
-  "telescope",
-  "whichkey",
+  -- "devicons",
+  -- "git",
+  -- "lsp",
+  -- "mason",
+  -- "nvcheatsheet",
+  -- "nvimtree",
+  -- "statusline",
+  -- "syntax",
+  -- "treesitter",
+  -- "tbline",
+  -- "telescope",
+  -- "whichkey",
 }
 
 local function get_integrations()
