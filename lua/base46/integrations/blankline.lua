@@ -1,5 +1,6 @@
 local colors = require("base46").get_theme_tb "base_30"
-local opts = require("nvconfig").base46
+local config = require "base46.config"
+local opts = config.get_options()
 
 local hl = {
   IblChar = { fg = colors.line },
