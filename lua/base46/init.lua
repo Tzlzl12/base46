@@ -1,6 +1,7 @@
 local M = {}
 local g = vim.g
-local opts = require("nvconfig").base46
+require("base46.config").setup()
+local opts = require("base46.config").options
 local cache_path = vim.g.base46_cache
 
 local function tbval_index(tb, val)
@@ -80,7 +81,7 @@ M.turn_str_to_color = function(tb)
         elseif valtype == "table" then
           -- transform table to color
           hlgroups[opt] = #val == 2 and lighten(colors[val[1]], val[2])
-            or mixcolors(colors[val[1]], colors[val[2]], val[3])
+              or mixcolors(colors[val[1]], colors[val[2]], val[3])
         end
       end
     end
@@ -135,7 +136,7 @@ M.tb_2str = function(tb)
 
     for optName, optVal in pairs(v) do
       local valueInStr = ((type(optVal)) == "boolean" or type(optVal) == "number") and tostring(optVal)
-        or '"' .. optVal .. '"'
+          or '"' .. optVal .. '"'
       hlopts = hlopts .. optName .. "=" .. valueInStr .. ","
     end
 
@@ -229,4 +230,26 @@ M.toggle_transparency = function()
   require("nvchad.utils").replace_word("transparency = " .. tostring(old), new)
 end
 
+local fn = vim.fn
+
+M.list_themes = function()
+  local plugin_path = debug.getinfo(M.list_themes, "S").source:sub(2):match("^(.*)/init%.lua$")
+  local default_themes = fn.readdir(plugin_path .. "/themes/")
+  local custom_themes = vim.uv.fs_stat(fn.stdpath "config" .. "/lua/themes")
+
+  if custom_themes and custom_themes.type == "directory" then
+    local themes_tb = fn.readdir(fn.stdpath "config" .. "/lua/themes")
+    for _, value in ipairs(themes_tb) do
+      table.insert(default_themes, value)
+    end
+  end
+
+  for index, theme in ipairs(default_themes) do
+    default_themes[index] = theme:match "(.+)%..+"
+  end
+
+  return default_themes
+end
+
 return M
+
