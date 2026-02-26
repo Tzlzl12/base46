@@ -4,7 +4,7 @@ M.defaults = {
   theme = "onedark",
   integrations = {},
   excluded = {},
-  transparency = false,
+  transparency = true,
   hl_override = {},
   changed_themes = {},
   theme_toggle = { "onedark", "chad" },
@@ -28,4 +28,3 @@ M.get_options = function()
 end
 
 return M
-

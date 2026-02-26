@@ -86,7 +86,7 @@ end
 M.get_theme_tb = function(type)
   local config = require "base46.config"
   local opts = config.get_options()
-  local name = opts.theme
+  -- local name = opts.theme
   local name = vim.fn.readfile(vim.fn.stdpath "data" .. "/colorscheme")[1] or opts.theme
   -- vim.notify("Theme: " .. name)
   local present1, default_theme = pcall(require, "base46.themes." .. name)
