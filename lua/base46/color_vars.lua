@@ -1,4 +1,5 @@
-local opts = require("nvconfig").base46
+local config = require("base46.config")
+local opts = config.get_options()
 local str = ""
 
 local present1, default_theme = pcall(require, "base46.themes." .. opts.theme)

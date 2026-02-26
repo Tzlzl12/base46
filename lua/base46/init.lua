@@ -1,8 +1,5 @@
 local M = {}
 local g = vim.g
-require("base46.config").setup()
-local opts = require("base46.config").options
-local cache_path = vim.g.base46_cache
 
 local function tbval_index(tb, val)
   for i, v in ipairs(tb) do
@@ -31,20 +28,34 @@ local integrations = {
   "whichkey",
 }
 
-for _, value in ipairs(opts.integrations) do
-  table.insert(integrations, value)
+local function get_integrations()
+  local config = require "base46.config"
+  local opts = config.get_options()
+  local result = vim.deepcopy(integrations)
+
+  for _, value in ipairs(opts.integrations) do
+    table.insert(result, value)
+  end
+
+  for _, value in ipairs(opts.excluded or {}) do
+    local val_i = tbval_index(result, value)
+    if val_i then
+      table.remove(result, val_i)
+    end
+  end
+
+  return result
 end
 
-for _, value in ipairs(opts.excluded or {}) do
-  local val_i = tbval_index(integrations, value)
-
-  if val_i then
-    table.remove(integrations, val_i)
-  end
+M.setup = function(user_opts)
+  require("base46.config").setup(user_opts)
 end
 
 M.get_theme_tb = function(type)
+  local config = require "base46.config"
+  local opts = config.get_options()
   local name = opts.theme
+  vim.notify("Theme: " .. name)
   local present1, default_theme = pcall(require, "base46.themes." .. name)
   local present2, user_theme = pcall(require, "themes." .. name)
 
@@ -53,7 +64,7 @@ M.get_theme_tb = function(type)
   elseif present2 then
     return user_theme[type]
   else
-    error "No such theme!"
+    vim.notify("No such theme: " .. name)
   end
 end
 
@@ -64,8 +75,6 @@ end
 local lighten = require("base46.colors").change_hex_lightness
 local mixcolors = require("base46.colors").mix
 
--- turns color var names in hl_override/hl_add to actual colors
--- hl_add = { abc = { bg = "one_bg" }} -> bg = colors.one_bg
 M.turn_str_to_color = function(tb)
   local colors = vim.tbl_extend("force", M.get_theme_tb "base_30", M.get_theme_tb "base_16")
   local copy = vim.deepcopy(tb)
@@ -75,13 +84,11 @@ M.turn_str_to_color = function(tb)
       local valtype = type(val)
 
       if opt == "fg" or opt == "bg" or opt == "sp" then
-        -- named colors from base30
         if valtype == "string" and val:sub(1, 1) ~= "#" and val ~= "none" and val ~= "NONE" then
           hlgroups[opt] = colors[val]
         elseif valtype == "table" then
-          -- transform table to color
           hlgroups[opt] = #val == 2 and lighten(colors[val[1]], val[2])
-              or mixcolors(colors[val[1]], colors[val[2]], val[3])
+            or mixcolors(colors[val[1]], colors[val[2]], val[3])
         end
       end
     end
@@ -91,14 +98,14 @@ M.turn_str_to_color = function(tb)
 end
 
 M.extend_default_hl = function(highlights, integration_name)
+  local config = require "base46.config"
+  local opts = config.get_options()
   local polish_hl = M.get_theme_tb "polish_hl"
 
-  -- polish themes
   if polish_hl and polish_hl[integration_name] then
     highlights = M.merge_tb(highlights, polish_hl[integration_name])
   end
 
-  -- transparency
   if opts.transparency then
     local glassy = require "base46.glassy"
 
@@ -126,7 +133,6 @@ M.get_integration = function(name)
   return M.extend_default_hl(highlights, name)
 end
 
--- convert table into string
 M.tb_2str = function(tb)
   local result = ""
 
@@ -136,7 +142,7 @@ M.tb_2str = function(tb)
 
     for optName, optVal in pairs(v) do
       local valueInStr = ((type(optVal)) == "boolean" or type(optVal) == "number") and tostring(optVal)
-          or '"' .. optVal .. '"'
+        or '"' .. optVal .. '"'
       hlopts = hlopts .. optName .. "=" .. valueInStr .. ","
     end
 
@@ -147,8 +153,7 @@ M.tb_2str = function(tb)
 end
 
 M.str_to_cache = function(filename, str)
-  -- Thanks to https://github.com/nullchilly and https://github.com/EdenEast/nightfox.nvim
-  -- It helped me understand string.dump stuff
+  local cache_path = vim.g.base46_cache
   local lines = "return string.dump(function()" .. str .. "end, true)"
   local file = io.open(cache_path .. filename, "wb")
 
@@ -159,14 +164,16 @@ M.str_to_cache = function(filename, str)
 end
 
 M.compile = function()
-  if not vim.uv.fs_stat(vim.g.base46_cache) then
+  local cache_path = vim.g.base46_cache
+  if not vim.uv.fs_stat(cache_path) then
     vim.fn.mkdir(cache_path, "p")
   end
 
   M.str_to_cache("term", require "base46.term")
   M.str_to_cache("colors", require "base46.color_vars")
 
-  for _, name in ipairs(integrations) do
+  local ints = get_integrations()
+  for _, name in ipairs(ints) do
     local hl_str = M.tb_2str(M.get_integration(name))
 
     if name == "defaults" then
@@ -181,11 +188,11 @@ M.load_all_highlights = function()
   require("plenary.reload").reload_module "base46"
   M.compile()
 
-  for _, name in ipairs(integrations) do
+  local ints = get_integrations()
+  for _, name in ipairs(ints) do
     dofile(vim.g.base46_cache .. name)
   end
 
-  -- update blankline
   pcall(function()
     require("ibl").update()
   end)
@@ -194,46 +201,43 @@ M.load_all_highlights = function()
 end
 
 M.override_theme = function(default_theme, theme_name)
+  local config = require "base46.config"
+  local opts = config.get_options()
   local changed_themes = opts.changed_themes
   return M.merge_tb(default_theme, changed_themes.all or {}, changed_themes[theme_name] or {})
 end
 
---------------------------- user functions ----------------------------------------------------------
 M.toggle_theme = function()
+  local config = require "base46.config"
+  local opts = config.get_options()
   local themes = opts.theme_toggle
 
   if opts.theme ~= themes[1] and opts.theme ~= themes[2] then
-    vim.notify "Set your current theme to one of those mentioned in the theme_toggle table (chadrc)"
+    vim.notify "Set your current theme to one of those mentioned in the theme_toggle table"
     return
   end
 
   g.icon_toggled = not g.icon_toggled
-  g.toggle_theme_icon = g.icon_toggled and "   " or "   "
+  g.toggle_theme_icon = g.icon_toggled and "  " or "  "
 
   opts.theme = (themes[1] == opts.theme and themes[2]) or themes[1]
+  config.options = opts
 
-  package.loaded.chadrc = nil
-  local chadrc = require "chadrc"
-  local old_theme = chadrc.base46.theme
-
-  require("nvchad.utils").replace_word('theme = "' .. old_theme, 'theme = "' .. opts.theme)
   M.load_all_highlights()
 end
 
 M.toggle_transparency = function()
+  local config = require "base46.config"
+  local opts = config.get_options()
   opts.transparency = not opts.transparency
+  config.options = opts
   M.load_all_highlights()
-
-  package.loaded.chadrc = nil
-  local old = require("chadrc").base46.transparency
-  local new = "transparency = " .. tostring(opts.transparency)
-  require("nvchad.utils").replace_word("transparency = " .. tostring(old), new)
 end
 
 local fn = vim.fn
 
 M.list_themes = function()
-  local plugin_path = debug.getinfo(M.list_themes, "S").source:sub(2):match("^(.*)/init%.lua$")
+  local plugin_path = debug.getinfo(M.list_themes, "S").source:sub(2):match "^(.*)/init%.lua$"
   local default_themes = fn.readdir(plugin_path .. "/themes/")
   local custom_themes = vim.uv.fs_stat(fn.stdpath "config" .. "/lua/themes")
 
@@ -252,4 +256,3 @@ M.list_themes = function()
 end
 
 return M
-

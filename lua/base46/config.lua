@@ -1,22 +1,31 @@
 local M = {}
 
 M.defaults = {
-  theme = "chad",
+  theme = "onedark",
   integrations = {},
   excluded = {},
   transparency = false,
   hl_override = {},
   changed_themes = {},
-  theme_toggle = { "chad", "onedark" },
+  theme_toggle = { "onedark", "chad" },
 }
 
-M.options = vim.deepcopy(M.defaults)
+M.options = nil
 
 M.setup = function(user_opts)
-  M.options = vim.tbl_deep_extend("force", M.options, user_opts or {})
+  M.options = vim.tbl_deep_extend("force", vim.deepcopy(M.defaults), user_opts or {})
 
-  vim.g.base46_cache = vim.g.base46_cache
-    or (vim.fn.stdpath("data") .. "/site/pack/vendor/start/base46/nvim-base46/compiled")
+  -- if not vim.g.base46_cache then
+  --   vim.g.base46_cache = vim.fn.stdpath("data") .. "/base46/cache/"
+  -- end
+end
+
+M.get_options = function()
+  if not M.options then
+    M.setup()
+  end
+  return M.options
 end
 
 return M
+
