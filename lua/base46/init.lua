@@ -10,23 +10,55 @@ local function tbval_index(tb, val)
 end
 
 local integrations = {
-  -- "blankline",
-  -- "blink",
-  -- "cmp",
-  "defaults",
-  -- "devicons",
-  -- "git",
-  -- "lsp",
-  -- "mason",
+  -- "alpha",
+  -- "bufferline",
+  "flash",
+  "lsp",
+  "notify",
+  "render-markdown",
+  "trouble",
+  -- "avante",
+  "codeactionmenu",
+  -- "git-conflict",
+  -- "markview",
   -- "nvcheatsheet",
-  -- "nvimtree",
-  -- "statusline",
-  -- "syntax",
-  -- "treesitter",
-  -- "tbline",
-  -- "telescope",
-  -- "whichkey",
+  "semantic_tokens",
+  "whichkey",
+  -- "blankline",
+  "dap",
+  "git",
+  "mason",
+  -- "nvshades",
+  "syntax",
+  "blink-pair",
+  "defaults",
+  -- "hop",
+  -- "navic",
+  -- "orgmode",
+  "todo",
+  "blink",
+  -- "diffview",
+  -- "leap",
+  -- "neogit",
+  "rainbowdelimiters",
+  "treesitter",
 }
+-- "blankline",
+-- "blink",
+-- "cmp",
+-- "defaults",
+-- "devicons",
+-- "git",
+-- "lsp",
+-- "mason",
+-- "nvcheatsheet",
+-- "nvimtree",
+-- "statusline",
+-- "syntax",
+-- "treesitter",
+-- "tbline",
+-- "telescope",
+-- "whichkey",
 
 local function get_integrations()
   local config = require "base46.config"
@@ -55,7 +87,8 @@ M.get_theme_tb = function(type)
   local config = require "base46.config"
   local opts = config.get_options()
   local name = opts.theme
-  vim.notify("Theme: " .. name)
+  local name = vim.fn.readfile(vim.fn.stdpath "data" .. "/colorscheme")[1] or opts.theme
+  -- vim.notify("Theme: " .. name)
   local present1, default_theme = pcall(require, "base46.themes." .. name)
   local present2, user_theme = pcall(require, "themes." .. name)
 
@@ -63,8 +96,8 @@ M.get_theme_tb = function(type)
     return default_theme[type]
   elseif present2 then
     return user_theme[type]
-  else
-    vim.notify("No such theme: " .. name)
+    -- else
+    --   vim.notify("No such theme: " .. name)
   end
 end
 
