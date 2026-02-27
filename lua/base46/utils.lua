@@ -20,6 +20,7 @@ local integrations = {
   "git",
   "lsp",
   "mason",
+  "neotree",
   "notify",
   "render-markdown",
   "rainbowdelimiters",
@@ -122,7 +123,7 @@ local function turn_str_to_color_impl(tb, colors)
           hlgroups[opt] = colors[val]
         elseif valtype == "table" then
           hlgroups[opt] = #val == 2 and lighten(colors[val[1]], val[2])
-            or mixcolors(colors[val[1]], colors[val[2]], val[3])
+              or mixcolors(colors[val[1]], colors[val[2]], val[3])
         end
       end
     end
@@ -265,7 +266,7 @@ function M.tb_2str(tb)
 
     for optName, optVal in pairs(v) do
       local valueInStr = ((type(optVal)) == "boolean" or type(optVal) == "number") and tostring(optVal)
-        or '"' .. optVal .. '"'
+          or '"' .. optVal .. '"'
       hlopts = hlopts .. optName .. "=" .. valueInStr .. ","
     end
 

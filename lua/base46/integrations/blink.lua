@@ -7,7 +7,7 @@ local black2_l = generate_color(colors.black2, 6)
 local black2_d = generate_color(colors.black2, -6)
 
 local highlights = {
-  BlinkCmpMenu = { bg = colors.black },
+  -- BlinkCmpMenu = { bg = colors.black },
   BlinkCmpMenuBorder = { fg = colors.grey_fg },
   BlinkCmpMenuSelection = { link = "PmenuSel", bold = true },
   BlinkCmpScrollBarThumb = { bg = colors.grey },
@@ -19,11 +19,11 @@ local highlights = {
   BlinkCmpLabelDescription = { fg = colors.light_grey },
   BlinkCmpSource = { fg = colors.grey_fg },
   BlinkCmpGhostText = { fg = colors.grey_fg },
-  BlinkCmpDoc = { bg = colors.black },
+  -- BlinkCmpDoc = { bg = colors.black },
   BlinkCmpDocBorder = { fg = colors.grey_fg },
   BlinkCmpDocSeparator = { fg = colors.grey },
-  BlinkCmpDocCursorLine = { bg = colors.one_bg },
-  BlinkCmpSignatureHelp = { bg = colors.black },
+  -- BlinkCmpDocCursorLine = { bg = colors.one_bg },
+  -- BlinkCmpSignatureHelp = { bg = colors.black },
   BlinkCmpSignatureHelpBorder = { fg = colors.grey_fg },
   BlinkCmpSignatureHelpActiveParameter = { fg = colors.blue, bold = true },
 }

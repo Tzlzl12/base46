@@ -70,7 +70,7 @@ function M.load_all_highlights(theme_name)
 
   local ints = utils.get_integrations()
   for _, name in ipairs(ints) do
-    print("load " .. theme_cache_path .. name)
+    -- print("load " .. theme_cache_path .. name)
     dofile(theme_cache_path .. name)
   end
 
