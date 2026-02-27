@@ -1,5 +1,5 @@
-local theme = require("base46").get_theme_tb "base_16"
-local base30 = require("base46").get_theme_tb "base_30"
+local theme = require("base46.utils").get_theme_tb "base_16"
+local base30 = require("base46.utils").get_theme_tb "base_30"
 
 local config = require "base46.config"
 local opts = config.get_options()

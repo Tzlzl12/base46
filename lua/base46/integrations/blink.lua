@@ -1,5 +1,5 @@
-local base16 = require("base46").get_theme_tb "base_16"
-local colors = require("base46").get_theme_tb "base_30"
+local base16 = require("base46.utils").get_theme_tb "base_16"
+local colors = require("base46.utils").get_theme_tb "base_30"
 local mixcolors = require("base46.colors").mix
 local generate_color = require("base46.colors").change_hex_lightness
 
@@ -69,63 +69,63 @@ for kind, color in pairs(kinds) do
 end
 
 -- style-specific overrides
-local cmp_ui = require("nvconfig").ui.cmp
-
-local styles = {
-  default = {
-    BlinkCmpMenuBorder = { fg = colors.grey_fg },
-  },
-
-  atom = {
-    BlinkCmpMenu = { bg = colors.black2 },
-    BlinkCmpDoc = { bg = colors.darker_black },
-    BlinkCmpDocBorder = { fg = colors.darker_black, bg = colors.darker_black },
-  },
-
-  atom_colored = {
-    BlinkCmpMenu = { bg = colors.black2 },
-    BlinkCmpDoc = { bg = colors.darker_black },
-    BlinkCmpDocBorder = { fg = colors.darker_black, bg = colors.darker_black },
-  },
-
-  flat_light = {
-    BlinkCmpMenu = { bg = colors.black2 },
-    BlinkCmpDoc = { bg = colors.darker_black },
-    BlinkCmpMenuBorder = { fg = colors.black2, bg = colors.black2 },
-    BlinkCmpDocBorder = { fg = colors.darker_black, bg = colors.darker_black },
-  },
-
-  flat_dark = {
-    BlinkCmpMenu = { bg = colors.darker_black },
-    BlinkCmpDoc = { bg = colors.black2 },
-    BlinkCmpMenuBorder = { fg = colors.darker_black, bg = colors.darker_black },
-    BlinkCmpDocBorder = { fg = colors.black2, bg = colors.black2 },
-  },
-}
-
--- atom style: add bg to kinds
-if cmp_ui.style == "atom" then
-  for kind, _ in pairs(kinds) do
-    local hl_name = "BlinkCmpKind" .. kind
-    highlights[hl_name] = vim.tbl_deep_extend("force", highlights[hl_name] or {}, {
-      bg = vim.o.bg == "dark" and black2_l or black2_d,
-    })
-  end
-end
-
--- atom_colored: mix fg with black for bg
-if cmp_ui.style == "atom_colored" then
-  for kind, _ in pairs(kinds) do
-    local hl_name = "BlinkCmpKind" .. kind
-    local fg = highlights[hl_name] and highlights[hl_name].fg or colors.white
-    highlights[hl_name] = {
-      fg = fg,
-      bg = mixcolors(fg, colors.black, 70),
-    }
-  end
-end
-
+-- local cmp_ui = require("nvconfig").ui.cmp
+--
+-- local styles = {
+--   default = {
+--     BlinkCmpMenuBorder = { fg = colors.grey_fg },
+--   },
+--
+--   atom = {
+--     BlinkCmpMenu = { bg = colors.black2 },
+--     BlinkCmpDoc = { bg = colors.darker_black },
+--     BlinkCmpDocBorder = { fg = colors.darker_black, bg = colors.darker_black },
+--   },
+--
+--   atom_colored = {
+--     BlinkCmpMenu = { bg = colors.black2 },
+--     BlinkCmpDoc = { bg = colors.darker_black },
+--     BlinkCmpDocBorder = { fg = colors.darker_black, bg = colors.darker_black },
+--   },
+--
+--   flat_light = {
+--     BlinkCmpMenu = { bg = colors.black2 },
+--     BlinkCmpDoc = { bg = colors.darker_black },
+--     BlinkCmpMenuBorder = { fg = colors.black2, bg = colors.black2 },
+--     BlinkCmpDocBorder = { fg = colors.darker_black, bg = colors.darker_black },
+--   },
+--
+--   flat_dark = {
+--     BlinkCmpMenu = { bg = colors.darker_black },
+--     BlinkCmpDoc = { bg = colors.black2 },
+--     BlinkCmpMenuBorder = { fg = colors.darker_black, bg = colors.darker_black },
+--     BlinkCmpDocBorder = { fg = colors.black2, bg = colors.black2 },
+--   },
+-- }
+--
+-- -- atom style: add bg to kinds
+-- if cmp_ui.style == "atom" then
+--   for kind, _ in pairs(kinds) do
+--     local hl_name = "BlinkCmpKind" .. kind
+--     highlights[hl_name] = vim.tbl_deep_extend("force", highlights[hl_name] or {}, {
+--       bg = vim.o.bg == "dark" and black2_l or black2_d,
+--     })
+--   end
+-- end
+--
+-- -- atom_colored: mix fg with black for bg
+-- if cmp_ui.style == "atom_colored" then
+--   for kind, _ in pairs(kinds) do
+--     local hl_name = "BlinkCmpKind" .. kind
+--     local fg = highlights[hl_name] and highlights[hl_name].fg or colors.white
+--     highlights[hl_name] = {
+--       fg = fg,
+--       bg = mixcolors(fg, colors.black, 70),
+--     }
+--   end
+-- end
+--
 -- merge style overrides
-highlights = vim.tbl_deep_extend("force", highlights, styles[cmp_ui.style] or {})
+-- highlights = vim.tbl_deep_extend("force", highlights, styles[cmp_ui.style] or {})
 
 return highlights

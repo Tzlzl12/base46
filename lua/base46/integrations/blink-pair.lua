@@ -1,4 +1,4 @@
-local colors = require("base46").get_theme_tb "base_30"
+local colors = require("base46.utils").get_theme_tb "base_30"
 
 local highligths = {
 
@@ -13,7 +13,6 @@ local highligths = {
 
   BlinkPairsUnmatched = { fg = colors.red },
   BlinkPairsMatchParen = { fg = colors.cyan },
-
 }
 
 return highligths

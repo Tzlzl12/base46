@@ -1,4 +1,4 @@
-local colors = require("base46").get_theme_tb "base_30"
+local colors = require("base46.utils").get_theme_tb "base_30"
 
 local M = {
   NvChHeading = {
@@ -25,7 +25,7 @@ if cheatsheet_theme == "grid" then
   }
 
   local bgcols =
-    { "blue", "red", "green", "yellow", "orange", "baby_pink", "purple", "white", "cyan", "vibrant_green", "teal" }
+  { "blue", "red", "green", "yellow", "orange", "baby_pink", "purple", "white", "cyan", "vibrant_green", "teal" }
 
   for _, value in ipairs(bgcols) do
     M["NvChHead" .. value] = {

@@ -1,4 +1,4 @@
-local colors = require("base46").get_theme_tb "base_16"
+local colors = require("base46.utils").get_theme_tb "base_16"
 
 local term = {
   "base01",

@@ -1,4 +1,4 @@
-local colors = require("base46").get_theme_tb "base_30"
+local colors = require("base46.utils").get_theme_tb "base_30"
 local mix_col = require("base46.colors").mix
 
 local highligths = {

@@ -1,4 +1,4 @@
-local theme = require("base46").get_theme_tb "base_16"
+local theme = require("base46.utils").get_theme_tb "base_16"
 
 local syntax = {
   Boolean = { fg = theme.base09 },
