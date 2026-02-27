@@ -1,4 +1,6 @@
 local M = {}
+local compile_theme = nil
+local current_compile_theme = nil
 
 local function tbval_index(tb, val)
   for i, v in ipairs(tb) do
@@ -52,12 +54,44 @@ function M.merge_tb(...)
   return vim.tbl_deep_extend("force", ...)
 end
 
-function M.get_theme_tb(type)
+function M.get_cached_theme()
+  local theme_name = nil
+  local file = vim.fn.stdpath "data" .. "/colorscheme"
+  if vim.uv.fs_stat(file) then
+    theme_name = vim.fn.readfile(file)[1]
+  end
+
+  if not theme_name then
+    theme_name = "onedark"
+  end
+
+  return theme_name
+end
+
+function M.change_cached_theme(theme_name)
+  local colorscheme_cache = vim.fs.joinpath(vim.fn.stdpath "data", "colorscheme")
+  local f = io.open(colorscheme_cache, "w")
+  if f then
+    f:write(theme_name)
+    f:close()
+  end
+end
+
+function M.get_theme_tb(type, theme_name)
   local config = require "base46.config"
-  -- local opts = config.get_options()
-  local name = vim.fn.readfile(vim.fn.stdpath "data" .. "/colorscheme")[1]
-  print(name)
-  return M.get_theme_tb_by_name(name, type)
+  if not theme_name then
+    theme_name = compile_theme or M.get_cached_theme()
+  end
+
+  return M.get_theme_tb_by_name(theme_name, type)
+end
+
+function M.set_compile_theme(theme_name)
+  compile_theme = theme_name
+end
+
+function M.clear_compile_theme()
+  compile_theme = nil
 end
 
 function M.get_theme_tb_by_name(theme_name, type)
@@ -76,8 +110,7 @@ end
 local lighten = require("base46.colors").change_hex_lightness
 local mixcolors = require("base46.colors").mix
 
-function M.turn_str_to_color(tb)
-  local colors = vim.tbl_extend("force", M.get_theme_tb "base_30", M.get_theme_tb "base_16")
+local function turn_str_to_color_impl(tb, colors)
   local copy = vim.deepcopy(tb)
 
   for _, hlgroups in pairs(copy) do
@@ -96,6 +129,21 @@ function M.turn_str_to_color(tb)
   end
 
   return copy
+end
+
+function M.turn_str_to_color(tb)
+  local colors = vim.tbl_extend("force", M.get_theme_tb "base_30", M.get_theme_tb "base_16")
+  return turn_str_to_color_impl(tb, colors)
+end
+
+function M.turn_str_to_color_by_theme(tb, theme_name)
+  local base30 = M.get_theme_tb_by_name(theme_name, "base_30")
+  local base16 = M.get_theme_tb_by_name(theme_name, "base_16")
+  if not base30 or not base16 then
+    return tb
+  end
+  local colors = vim.tbl_extend("force", base30, base16)
+  return turn_str_to_color_impl(tb, colors)
 end
 
 function M.extend_default_hl(highlights, integration_name)
@@ -149,7 +197,7 @@ function M.extend_default_hl_by_theme(highlights, integration_name, theme_name)
   end
 
   local hl_override = opts.hl_override
-  local overriden_hl = M.turn_str_to_color(hl_override)
+  local overriden_hl = M.turn_str_to_color_by_theme(hl_override, theme_name)
 
   for key, value in pairs(overriden_hl) do
     if highlights[key] then
@@ -187,7 +235,7 @@ function M.generate_term_str(theme_name)
 
   local result = ""
   for i, color in ipairs(term_colors) do
-    result = result .. string.format("vim.g.terminal_color_%d='%s'", i - 1, color)
+    result = result .. string.format("vim.g.terminal_color_%d='%s';", i - 1, color)
   end
 
   return result
@@ -199,11 +247,11 @@ function M.generate_colors_str(theme_name)
     return ""
   end
 
-  local result = "local colors={}"
+  local result = "local colors={};"
   for name, color in pairs(base30) do
-    result = result .. string.format("colors['%s']='%s'", name, color)
+    result = result .. string.format("colors['%s']='%s';", name, color)
   end
-  result = result .. "return colors"
+  result = result .. "return colors;"
 
   return result
 end
@@ -227,10 +275,9 @@ function M.tb_2str(tb)
   return result
 end
 
-function M.str_to_cache(filename, str)
-  local cache_path = vim.g.base46_cache
+function M.str_to_cache(filepath, str)
   local lines = "return string.dump(function()" .. str .. "end, true)"
-  local file = io.open(cache_path .. filename, "wb")
+  local file = io.open(filepath, "wb")
 
   if file then
     file:write(loadstring(lines)())

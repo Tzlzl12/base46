@@ -1,10 +1,8 @@
 local M = {}
 
 M.defaults = {
-  theme = "onedark",
   integrations = {},
   excluded = {},
-  transparency = true,
   hl_override = {},
   changed_themes = {},
   theme_toggle = { "onedark", "chad" },
