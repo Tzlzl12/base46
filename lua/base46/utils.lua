@@ -9,24 +9,24 @@ local function tbval_index(tb, val)
 end
 
 local integrations = {
+  "blink",
+  "blink-pair",
+  "codeactionmenu",
+  "dap",
+  "defaults",
   "flash",
+  "git",
   "lsp",
+  "mason",
   "notify",
   "render-markdown",
-  "trouble",
-  "codeactionmenu",
-  "semantic_tokens",
-  "whichkey",
-  "dap",
-  "git",
-  "mason",
-  "syntax",
-  "blink-pair",
-  "defaults",
-  "todo",
-  "blink",
   "rainbowdelimiters",
+  "semantic_tokens",
+  "syntax",
+  "todo",
   "treesitter",
+  "trouble",
+  "whichkey",
 }
 
 function M.get_integrations()
@@ -54,18 +54,22 @@ end
 
 function M.get_theme_tb(type)
   local config = require "base46.config"
-  local opts = config.get_options()
-  local name = opts.theme
-  -- local name = vim.fn.readfile(vim.fn.stdpath "data" .. "/colorscheme")[1] or opts.theme
-  local present1, default_theme = pcall(require, "base46.themes." .. name)
-  local present2, user_theme = pcall(require, "themes." .. name)
+  -- local opts = config.get_options()
+  local name = vim.fn.readfile(vim.fn.stdpath "data" .. "/colorscheme")[1]
+  print(name)
+  return M.get_theme_tb_by_name(name, type)
+end
+
+function M.get_theme_tb_by_name(theme_name, type)
+  local present1, default_theme = pcall(require, "base46.themes." .. theme_name)
+  local present2, user_theme = pcall(require, "themes." .. theme_name)
 
   if present1 then
     return default_theme[type]
   elseif present2 then
     return user_theme[type]
   else
-    error("No such theme: " .. name)
+    error("No such theme: " .. theme_name)
   end
 end
 
@@ -85,7 +89,7 @@ function M.turn_str_to_color(tb)
           hlgroups[opt] = colors[val]
         elseif valtype == "table" then
           hlgroups[opt] = #val == 2 and lighten(colors[val[1]], val[2])
-              or mixcolors(colors[val[1]], colors[val[2]], val[3])
+            or mixcolors(colors[val[1]], colors[val[2]], val[3])
         end
       end
     end
@@ -125,6 +129,85 @@ function M.extend_default_hl(highlights, integration_name)
   return highlights
 end
 
+function M.extend_default_hl_by_theme(highlights, integration_name, theme_name)
+  local config = require "base46.config"
+  local opts = config.get_options()
+  local polish_hl = M.get_theme_tb_by_name(theme_name, "polish_hl")
+
+  if polish_hl and polish_hl[integration_name] then
+    highlights = M.merge_tb(highlights, polish_hl[integration_name])
+  end
+
+  if opts.transparency then
+    local glassy = require "base46.glassy"
+
+    for key, value in pairs(glassy) do
+      if highlights[key] then
+        highlights[key] = M.merge_tb(highlights[key], value)
+      end
+    end
+  end
+
+  local hl_override = opts.hl_override
+  local overriden_hl = M.turn_str_to_color(hl_override)
+
+  for key, value in pairs(overriden_hl) do
+    if highlights[key] then
+      highlights[key] = M.merge_tb(highlights[key], value)
+    end
+  end
+
+  return highlights
+end
+
+function M.generate_term_str(theme_name)
+  local base16 = M.get_theme_tb_by_name(theme_name, "base_16")
+  if not base16 then
+    return ""
+  end
+
+  local term_colors = {
+    base16.base00,
+    base16.base08,
+    base16.base0B,
+    base16.base0A,
+    base16.base0D,
+    base16.base0E,
+    base16.base0C,
+    base16.base05,
+    base16.base03,
+    base16.base08,
+    base16.base0B,
+    base16.base0A,
+    base16.base0D,
+    base16.base0E,
+    base16.base0C,
+    base16.base07,
+  }
+
+  local result = ""
+  for i, color in ipairs(term_colors) do
+    result = result .. string.format("vim.g.terminal_color_%d='%s'", i - 1, color)
+  end
+
+  return result
+end
+
+function M.generate_colors_str(theme_name)
+  local base30 = M.get_theme_tb_by_name(theme_name, "base_30")
+  if not base30 then
+    return ""
+  end
+
+  local result = "local colors={}"
+  for name, color in pairs(base30) do
+    result = result .. string.format("colors['%s']='%s'", name, color)
+  end
+  result = result .. "return colors"
+
+  return result
+end
+
 function M.tb_2str(tb)
   local result = ""
 
@@ -134,7 +217,7 @@ function M.tb_2str(tb)
 
     for optName, optVal in pairs(v) do
       local valueInStr = ((type(optVal)) == "boolean" or type(optVal) == "number") and tostring(optVal)
-          or '"' .. optVal .. '"'
+        or '"' .. optVal .. '"'
       hlopts = hlopts .. optName .. "=" .. valueInStr .. ","
     end
 
@@ -184,4 +267,3 @@ function M.list_themes()
 end
 
 return M
-

@@ -7,35 +7,51 @@ function M.setup(user_opts)
 end
 
 function M.compile()
-  local cache_path = vim.g.base46_cache
-  if not vim.uv.fs_stat(cache_path) then
-    vim.fn.mkdir(cache_path, "p")
-  end
+  local base_cache_path = vim.g.base46_cache
+  local themes = utils.list_themes()
 
-  utils.str_to_cache("term", require "base46.term")
-  utils.str_to_cache("colors", require "base46.color_vars")
-
-  local ints = utils.get_integrations()
-  for _, name in ipairs(ints) do
-    local highlights = require("base46.integrations." .. name)
-    highlights = utils.extend_default_hl(highlights, name)
-    local hl_str = utils.tb_2str(highlights)
-
-    if name == "defaults" then
-      hl_str = "vim.o.tgc=true vim.o.bg='" .. utils.get_theme_tb "type" .. "' " .. hl_str
+  for _, theme_name in ipairs(themes) do
+    -- Create per-theme cache directory
+    local theme_cache_path = base_cache_path .. theme_name .. "/"
+    if not vim.uv.fs_stat(theme_cache_path) then
+      vim.fn.mkdir(theme_cache_path, "p")
     end
 
-    utils.str_to_cache(name, hl_str)
+    -- Generate term file for this theme
+    local term_str = utils.generate_term_str(theme_name)
+    utils.str_to_cache(theme_cache_path .. "term", term_str)
+
+    -- Generate colors file for this theme
+    local colors_str = utils.generate_colors_str(theme_name)
+    utils.str_to_cache(theme_cache_path .. "colors", colors_str)
+
+    -- Generate integration files for this theme
+    local ints = utils.get_integrations()
+    for _, name in ipairs(ints) do
+      local highlights = require("base46.integrations." .. name)
+      highlights = utils.extend_default_hl_by_theme(highlights, name, theme_name)
+      local hl_str = utils.tb_2str(highlights)
+
+      if name == "defaults" then
+        hl_str = "vim.o.tgc=true vim.o.bg='" .. utils.get_theme_tb_by_name(theme_name, "type") .. "' " .. hl_str
+      end
+
+      utils.str_to_cache(theme_cache_path .. name, hl_str)
+    end
   end
 end
 
 function M.load_all_highlights()
   require("plenary.reload").reload_module "base46"
-  M.compile()
+  -- M.compile()
+
+  local config = require "base46.config"
+  local opts = config.get_options()
+  local theme_cache_path = vim.g.base46_cache .. opts.theme .. "/"
 
   local ints = utils.get_integrations()
   for _, name in ipairs(ints) do
-    dofile(vim.g.base46_cache .. name)
+    dofile(theme_cache_path .. name)
   end
 
   pcall(function()
