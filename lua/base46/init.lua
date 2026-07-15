@@ -70,10 +70,6 @@ function M.load_all_highlights(theme_name)
 
   local theme_cache_path = vim.g.base46_cache .. theme_name .. "/"
 
-  if vim.uv.fs_stat(theme_cache_path) ~= "directory" then
-    M.compile()
-  end
-
   local ints = utils.get_integrations()
   for _, name in ipairs(ints) do
     -- print("load " .. theme_cache_path .. name)
