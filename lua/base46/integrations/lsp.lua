@@ -8,14 +8,14 @@ return {
   LspReferenceWrite = { bg = colors.one_bg3 },
 
   -- Lsp Diagnostics
-  DiagnosticHint = { fg = colors.purple },
+  DiagnosticHint = { fg = colors.cyan },
   DiagnosticError = { fg = colors.red },
   DiagnosticWarn = { fg = colors.yellow },
-  DiagnosticInfo = { fg = colors.green },
+  DiagnosticInfo = { fg = colors.blue },
   LspSignatureActiveParameter = { fg = colors.black, bg = colors.green },
 
   LspInlayHint = {
-    bg = colorize(colors.black2, vim.o.bg == "dark" and 0 or 3),
+    -- bg = colorize(colors.black2, vim.o.bg == "dark" and 3 or 3),
     fg = colors.light_grey,
   },
 }

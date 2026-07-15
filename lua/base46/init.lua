@@ -56,6 +56,8 @@ function M.compile()
 
   -- 编译完成后清除编译主题名
   utils.clear_compile_theme()
+
+  vim.notify "Compile themes finished"
 end
 
 function M.load_all_highlights(theme_name)
@@ -67,6 +69,10 @@ function M.load_all_highlights(theme_name)
   vim.o.background = kind
 
   local theme_cache_path = vim.g.base46_cache .. theme_name .. "/"
+
+  if vim.uv.fs_stat(theme_cache_path) ~= "directory" then
+    M.compile()
+  end
 
   local ints = utils.get_integrations()
   for _, name in ipairs(ints) do
